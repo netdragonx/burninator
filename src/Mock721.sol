@@ -6,18 +6,15 @@ import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 contract Mock721 is ERC721Enumerable {
     constructor() ERC721("Mock721", "MOCK721") {}
 
-    function mint(address recipient, uint count)
-        external
-        payable
-    {
+    function mint(address recipient, uint count) external payable {
         require(count > 0, "Mint more than 0");
 
         bytes memory data;
         uint supply = totalSupply();
 
         for (uint256 i; i < count; ) {
-            _safeMint(recipient, ++supply, data);
-            
+            _safeMint(recipient, supply + i, data);
+
             unchecked {
                 ++i;
             }
