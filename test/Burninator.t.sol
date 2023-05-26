@@ -33,14 +33,14 @@ contract BurninatorTest is Test {
 
         {
             vm.startPrank(user2);
-            burninator.createOffer{value: value}(address(mock721), 0);
+            burninator.donate{value: value}(address(mock721), 0);
             vm.stopPrank();
         }
 
         {
             vm.startPrank(user1);
             mock721.setApprovalForAll(address(burninator), true);
-            burninator.acceptOffer(address(mock721), 0);
+            burninator.burninate(address(mock721), 0);
             vm.stopPrank();
         }
 
@@ -50,32 +50,13 @@ contract BurninatorTest is Test {
         assertEq(user2.balance, balance - value, "User should have donated their money");
     }
 
-    function testCreateOffer() public payable {
-        uint256 value = 0.01 ether;
-        uint256 balance = 1 ether;
-
-        mock721.mint(user1, 1);
-
-        {
-            vm.startPrank(user2);
-            vm.deal(user2, balance);
-            burninator.createOffer{value: value}(address(mock721), 0);
-            vm.stopPrank();
-        }
-
-        assertEq(burninator.offers(address(mock721), 0), value, "Offer should be created");
-        assertEq(address(burninator).balance, value, "Contract should have money");
-        assertEq(user1.balance, 0, "User should not have money yet");
-        assertEq(user2.balance, balance - value, "User should have donated their money");
-    }
-
     function testDonate() public payable {
         uint256 value = 0.01 ether;
         uint256 balance = 1 ether;
 
         mock721.mint(user1, 1);
 
-        burninator.createOffer{value: value}(address(mock721), 0);
+        burninator.donate{value: value}(address(mock721), 0);
 
         {
             vm.startPrank(user2);
@@ -99,13 +80,13 @@ contract BurninatorTest is Test {
         {
             vm.startPrank(user2);
             vm.deal(user2, balance);
-            burninator.createOffer{value: value}(address(mock721), 0);
+            burninator.donate{value: value}(address(mock721), 0);
             burninator.donate{value: value}(address(mock721), 0);
 
             assertEq(address(burninator).balance, value * 2, "Contract should have money");
             assertEq(user2.balance, balance - value * 2, "User should have donated their money");
 
-            burninator.withdrawDonation(address(mock721), 0);
+            burninator.withdraw(address(mock721), 0);
 
             assertEq(user2.balance, balance, "User should get their money back");
             vm.stopPrank();

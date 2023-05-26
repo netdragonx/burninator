@@ -37,8 +37,6 @@ import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
                           |__
     
     ascii art sauce: https://github.com/asiansteev/trogdor
-
-    author: 🐉
 */
 
 contract Burninator {
@@ -47,49 +45,34 @@ contract Burninator {
 
     address public constant BURN_ADDRESS = 0x000000000000000000000000000000000000dEaD;
 
-    error ContractsNotAllowed();
-    error InitialDonationRequired();
-    error OfferAlreadyExists();
     error AlreadyBurned();
     error DonationRequired();
-    error OfferDoesNotExist();
     error NoDonationToWithdraw();
-    error TransferFailed();
-    error NotTokenOwner();
     error NoOfferToAccept();
+    error NotTokenOwner();
+    error TransferFailed();
 
-    event OfferCreated(address indexed tokenAddress, uint256 indexed tokenId, uint256 amount);
-    event OfferAccepted(address indexed tokenAddress, uint256 indexed tokenId, address indexed acceptor);
-    event DonationMade(address indexed tokenAddress, uint256 indexed tokenId, address indexed donor, uint256 amount);
-    event DonationWithdrawn(
-        address indexed tokenAddress,
-        uint256 indexed tokenId,
-        address indexed donor,
-        uint256 amount
-    );
+    event Burninated(address indexed tokenAddress, uint256 indexed tokenId, address indexed acceptor);
+    event Donation(address indexed tokenAddress, uint256 indexed tokenId, address indexed donor, uint256 amount);
+    event Withdrawal(address indexed tokenAddress, uint256 indexed tokenId, address indexed donor, uint256 amount);
 
-    function createOffer(address tokenAddress, uint256 tokenId) public payable {
-        if (msg.value == 0) revert InitialDonationRequired();
-        if (offers[tokenAddress][tokenId] != 0) revert OfferAlreadyExists();
-        if (IERC721(tokenAddress).ownerOf(tokenId) == BURN_ADDRESS) revert AlreadyBurned();
-
-        offers[tokenAddress][tokenId] = msg.value;
-        donations[tokenAddress][tokenId][msg.sender] = msg.value;
-
-        emit OfferCreated(tokenAddress, tokenId, msg.value);
-    }
-
+    /*
+        Donate ether to encourage the burnination of a token
+    */
     function donate(address tokenAddress, uint256 tokenId) public payable {
         if (msg.value == 0) revert DonationRequired();
-        if (offers[tokenAddress][tokenId] == 0) revert OfferDoesNotExist();
+        if (IERC721(tokenAddress).ownerOf(tokenId) == BURN_ADDRESS) revert AlreadyBurned();
 
         offers[tokenAddress][tokenId] += msg.value;
         donations[tokenAddress][tokenId][msg.sender] += msg.value;
 
-        emit DonationMade(tokenAddress, tokenId, msg.sender, msg.value);
+        emit Donation(tokenAddress, tokenId, msg.sender, msg.value);
     }
 
-    function withdrawDonation(address tokenAddress, uint256 tokenId) public {
+    /*
+        If you change your mind, withdraw before offer is accepted.
+    */
+    function withdraw(address tokenAddress, uint256 tokenId) public {
         if (donations[tokenAddress][tokenId][msg.sender] == 0) revert NoDonationToWithdraw();
 
         uint256 donation = donations[tokenAddress][tokenId][msg.sender];
@@ -97,13 +80,15 @@ contract Burninator {
         offers[tokenAddress][tokenId] -= donation;
 
         (bool success, ) = payable(msg.sender).call{value: donation}("");
-
         if (!success) revert TransferFailed();
 
-        emit DonationWithdrawn(tokenAddress, tokenId, msg.sender, donation);
+        emit Withdrawal(tokenAddress, tokenId, msg.sender, donation);
     }
 
-    function acceptOffer(address tokenAddress, uint256 tokenId) public {
+    /*
+        To accept the offer, first call setApprovalForAll(true) on NFT contract.
+    */
+    function burninate(address tokenAddress, uint256 tokenId) public {
         if (IERC721(tokenAddress).ownerOf(tokenId) != msg.sender) revert NotTokenOwner();
         if (offers[tokenAddress][tokenId] == 0) revert NoOfferToAccept();
 
@@ -115,6 +100,6 @@ contract Burninator {
 
         IERC721(tokenAddress).transferFrom(msg.sender, BURN_ADDRESS, tokenId);
 
-        emit OfferAccepted(tokenAddress, tokenId, msg.sender);
+        emit Burninated(tokenAddress, tokenId, msg.sender);
     }
 }
