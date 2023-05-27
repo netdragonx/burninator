@@ -3,7 +3,7 @@ pragma solidity ^0.8.19;
 
 import "forge-std/Test.sol";
 import "../src/Burninator.sol";
-import "../src/Mock721.sol";
+import "./Mock721.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 
 contract BurninatorTest is Test {

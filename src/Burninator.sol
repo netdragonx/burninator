@@ -35,8 +35,9 @@ import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
                           |     \
                           |      \__
                           |__
-    
-    ascii art sauce: https://github.com/asiansteev/trogdor
+
+        wtf trogdor? https://www.youtube.com/watch?v=90X5NJleYJQ
+        ascii sauce: https://github.com/asiansteev/trogdor
 */
 
 contract Burninator {
@@ -59,7 +60,7 @@ contract Burninator {
     /*
         Donate ether to encourage the burnination of a token
     */
-    function donate(address tokenAddress, uint256 tokenId) public payable {
+    function donate(address tokenAddress, uint256 tokenId) external payable {
         if (msg.value == 0) revert DonationRequired();
         if (IERC721(tokenAddress).ownerOf(tokenId) == BURN_ADDRESS) revert AlreadyBurned();
 
@@ -72,7 +73,7 @@ contract Burninator {
     /*
         If you change your mind, withdraw before offer is accepted.
     */
-    function withdraw(address tokenAddress, uint256 tokenId) public {
+    function withdraw(address tokenAddress, uint256 tokenId) external {
         if (donations[tokenAddress][tokenId][msg.sender] == 0) revert NoDonationToWithdraw();
 
         uint256 donation = donations[tokenAddress][tokenId][msg.sender];
@@ -86,9 +87,11 @@ contract Burninator {
     }
 
     /*
-        To accept the offer, first call setApprovalForAll(true) on NFT contract.
+        To accept the offer, first call approve or setApprovalForAll on your NFT's contract.
+
+        Set minimumAmount to value of current offer to prevent frontrunning withdrawals.
     */
-    function burninate(address tokenAddress, uint256 tokenId, uint256 minimumAmount) public {
+    function burninate(address tokenAddress, uint256 tokenId, uint256 minimumAmount) external {
         if (IERC721(tokenAddress).ownerOf(tokenId) != msg.sender) revert NotTokenOwner();
         if (offers[tokenAddress][tokenId] < minimumAmount) revert InvalidOffer();
         if (offers[tokenAddress][tokenId] == 0) revert InvalidOffer();
