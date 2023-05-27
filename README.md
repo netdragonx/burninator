@@ -70,7 +70,7 @@ _Important:_ Before calling `burninate`, you must first approve the contract.
 1. Go to the contract for the NFT collection you're going to burn
 2. Call `approve` with your NFT (`tokenId`) and Burninator address (`to`)
 
-`burninate(address tokenAddress, uint256 tokenId)`
+`burninate(address tokenAddress, uint256 tokenId, uint256 minimumAmount)`
 
 1. Set `tokenAddress` to the contract address of the NFT collection
 2. Set `tokenId` to the token of the NFT you're burning
