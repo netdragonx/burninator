@@ -11,6 +11,7 @@ contract BurninatorTest is Test {
     Mock721 public mock721;
     address public user1;
     address public user2;
+    address public user3;
 
     receive() external payable {}
 
@@ -30,24 +31,52 @@ contract BurninatorTest is Test {
         mock721.mint(user1, 1);
 
         vm.deal(user2, balance);
+        vm.deal(user3, balance);
 
-        {
-            vm.startPrank(user2);
-            burninator.donate{value: value}(address(mock721), 0);
-            vm.stopPrank();
-        }
+        vm.prank(user2);
+        burninator.donate{value: value}(address(mock721), 0);
+
+        vm.prank(user3);
+        burninator.donate{value: value}(address(mock721), 0);
 
         {
             vm.startPrank(user1);
             mock721.setApprovalForAll(address(burninator), true);
-            burninator.burninate(address(mock721), 0);
+            burninator.burninate(address(mock721), 0, value * 2);
             vm.stopPrank();
         }
 
         assertEq(burninator.offers(address(mock721), 0), 0, "Offer should be removed");
         assertEq(address(burninator).balance, 0, "Contract should be empty");
-        assertEq(user1.balance, value, "User should get their money");
+        assertEq(user1.balance, value * 2, "User should get their money");
         assertEq(user2.balance, balance - value, "User should have donated their money");
+        assertEq(user3.balance, balance - value, "User should have donated their money");
+    }
+
+    function testRejectInvalidOffer() public {
+        uint256 value = 0.01 ether;
+        uint256 balance = 1 ether;
+
+        mock721.mint(user1, 1);
+
+        vm.deal(user2, balance);
+        vm.deal(user3, balance);
+
+        vm.prank(user2);
+        burninator.donate{value: value}(address(mock721), 0);
+
+        vm.prank(user3);
+        burninator.donate{value: value}(address(mock721), 0);
+
+        vm.prank(user1);
+        mock721.setApprovalForAll(address(burninator), true);
+
+        vm.prank(user3);
+        burninator.withdraw(address(mock721), 0);
+
+        vm.prank(user1);
+        vm.expectRevert();
+        burninator.burninate(address(mock721), 0, value * 2);
     }
 
     function testDonate() public payable {

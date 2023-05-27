@@ -74,5 +74,6 @@ _Important:_ Before calling `burninate`, you must first approve the contract.
 
 1. Set `tokenAddress` to the contract address of the NFT collection
 2. Set `tokenId` to the token of the NFT you're burning
-3. Click "Write"
-4. Rethink your life choices.
+3. Set `minimumAmount` to current offer amount to prevent frontrunning (h/t 0xquit)
+4. Click "Write"
+5. Rethink your life choices.

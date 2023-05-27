@@ -47,8 +47,8 @@ contract Burninator {
 
     error AlreadyBurned();
     error DonationRequired();
+    error InvalidOffer();
     error NoDonationToWithdraw();
-    error NoOfferToAccept();
     error NotTokenOwner();
     error TransferFailed();
 
@@ -88,9 +88,10 @@ contract Burninator {
     /*
         To accept the offer, first call setApprovalForAll(true) on NFT contract.
     */
-    function burninate(address tokenAddress, uint256 tokenId) public {
+    function burninate(address tokenAddress, uint256 tokenId, uint256 minimumAmount) public {
         if (IERC721(tokenAddress).ownerOf(tokenId) != msg.sender) revert NotTokenOwner();
-        if (offers[tokenAddress][tokenId] == 0) revert NoOfferToAccept();
+        if (offers[tokenAddress][tokenId] < minimumAmount) revert InvalidOffer();
+        if (offers[tokenAddress][tokenId] == 0) revert InvalidOffer();
 
         uint256 amount = offers[tokenAddress][tokenId];
         offers[tokenAddress][tokenId] = 0;
